@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
+import { checkAuth } from '../../lib/auth';
 
 export async function POST(request: Request) {
+  // Check authentication for AI generation
+  const isAuthenticated = await checkAuth();
+  if (!isAuthenticated) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { prompt } = await request.json();
     
@@ -72,7 +82,7 @@ Rules:
     let generated;
     try {
       generated = JSON.parse(content);
-    } catch (error) {
+    } catch {
       throw new Error('Invalid JSON response from OpenAI');
     }
 
@@ -83,7 +93,7 @@ Rules:
 
     // Ensure we have at most 2 sections and 3 fields per section
     generated.sections = generated.sections.slice(0, 2);
-    generated.sections.forEach((section: any) => {
+    generated.sections.forEach((section: { fields?: unknown[] }) => {
       if (section.fields && Array.isArray(section.fields)) {
         section.fields = section.fields.slice(0, 3);
       }

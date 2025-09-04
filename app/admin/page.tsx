@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -14,16 +14,30 @@ interface Form {
 export default function AdminDashboard() {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !localStorage.getItem('isAdmin')) {
-      router.push('/');
-      return;
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/check');
+      const data = await response.json();
+      
+      if (!data.authenticated) {
+        router.push('/login');
+        return;
+      }
+      
+      setIsAuthenticated(true);
+      fetchForms();
+    } catch (error) {
+      console.error('Auth check error:', error);
+      router.push('/login');
     }
-
-    fetchForms();
   }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const fetchForms = async () => {
     try {
@@ -37,12 +51,18 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAdmin');
-    router.push('/');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout error:', error);
+      router.push('/login');
+    }
   };
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 

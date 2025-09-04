@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Field {
@@ -25,34 +25,53 @@ interface Form {
   sections: Section[];
 }
 
-export default function PublicForm({ params }: { params: { id: string } }) {
+export default function PublicForm({ params }: { params: Promise<{ id: string }> }) {
   const [form, setForm] = useState<Form | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formId, setFormId] = useState<string>('');
   const router = useRouter();
 
-  useEffect(() => {
-    fetchForm();
-  }, [params.id]);
-
-  const fetchForm = async () => {
+  const fetchForm = useCallback(async (id: string) => {
+    if (!id) return;
+    
     try {
-      const response = await fetch(`/api/forms/${params.id}`);
+      const response = await fetch(`/api/forms/${id}`);
       if (!response.ok) {
-        throw new Error('Form not found');
+        if (response.status === 404) {
+          setForm(null);
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return;
       }
       const data = await response.json();
       setForm(data);
     } catch (error) {
       console.error('Error fetching form:', error);
-      // Handle error - maybe redirect to a 404 page
+      setForm(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const initializeForm = async () => {
+      try {
+        const resolvedParams = await params;
+        setFormId(resolvedParams.id);
+        fetchForm(resolvedParams.id);
+      } catch (error) {
+        console.error('Error resolving params:', error);
+        setLoading(false);
+      }
+    };
+    
+    initializeForm();
+  }, [params, fetchForm]);
 
   const handleInputChange = (fieldId: string, value: string) => {
     setFormData(prev => ({
@@ -93,7 +112,7 @@ export default function PublicForm({ params }: { params: { id: string } }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (!validateForm() || !formId) {
       return;
     }
 
@@ -105,7 +124,7 @@ export default function PublicForm({ params }: { params: { id: string } }) {
         value
       }));
 
-      const response = await fetch(`/api/forms/${params.id}/submit`, {
+      const response = await fetch(`/api/forms/${formId}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,19 +133,21 @@ export default function PublicForm({ params }: { params: { id: string } }) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit form');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Failed to submit form. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to submit form: ${errorMessage}. Please try again.`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
+  if (loading || !formId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
@@ -142,7 +163,7 @@ export default function PublicForm({ params }: { params: { id: string } }) {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Form Not Found</h1>
-          <p className="text-gray-600 mb-8">The form you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600 mb-8">The form you&apos;re looking for doesn&apos;t exist or has been removed.</p>
           <button
             onClick={() => router.push('/')}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium"
@@ -165,7 +186,7 @@ export default function PublicForm({ params }: { params: { id: string } }) {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Thank You!</h1>
           <p className="text-gray-600 mb-8">
-            Your form has been submitted successfully. We'll get back to you soon.
+            Your form has been submitted successfully. We&apos;ll get back to you soon.
           </p>
           <button
             onClick={() => router.push('/')}

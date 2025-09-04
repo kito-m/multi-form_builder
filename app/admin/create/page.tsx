@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -34,14 +34,32 @@ export default function CreateForm() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !localStorage.getItem('isAdmin')) {
-      router.push('/');
-      return;
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await fetch('/api/auth/check');
+      const data = await response.json();
+      
+      if (!data.authenticated) {
+        router.push('/login');
+        return;
+      }
+      
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Auth check error:', error);
+      router.push('/login');
+    } finally {
+      setLoading(false);
     }
   }, [router]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const addSection = () => {
     if (formData.sections.length >= 2) {
@@ -138,7 +156,7 @@ export default function CreateForm() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch('/api/generate', {
+      const response = await fetch('/api/ai', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,11 +171,11 @@ export default function CreateForm() {
       const generated = await response.json();
       
       // Convert generated structure to our format
-      const sections: Section[] = generated.sections.map((section: any, index: number) => ({
+      const sections: Section[] = generated.sections.map((section: { title: string; fields: { label: string; type: string; required?: boolean }[] }, index: number) => ({
         id: `section_${Date.now()}_${index}`,
         title: section.title,
         order: index,
-        fields: section.fields.map((field: any, fieldIndex: number) => ({
+        fields: section.fields.map((field: { label: string; type: string; required?: boolean }, fieldIndex: number) => ({
           id: `field_${Date.now()}_${index}_${fieldIndex}`,
           label: field.label,
           type: field.type.toUpperCase() as 'TEXT' | 'NUMBER',
@@ -215,6 +233,10 @@ export default function CreateForm() {
       setSaving(false);
     }
   };
+
+  if (loading || !isAuthenticated) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

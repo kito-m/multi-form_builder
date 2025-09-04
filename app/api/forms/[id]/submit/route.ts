@@ -3,15 +3,16 @@ import { prisma } from '../../../../lib/prisma';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { responses } = body;
 
     // First verify the form exists
     const form = await prisma.form.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         sections: {
           include: {
@@ -31,9 +32,9 @@ export async function POST(
     // Create the submission with all responses
     const submission = await prisma.submission.create({
       data: {
-        formId: params.id,
+        formId: id,
         responses: {
-          create: responses.map((response: any) => ({
+          create: responses.map((response: { fieldId: string; value: string }) => ({
             fieldId: response.fieldId,
             value: response.value
           }))
