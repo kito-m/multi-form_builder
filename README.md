@@ -25,24 +25,25 @@ A full-stack web application for creating custom forms with optional AI assistan
    ```
 
 2. **Environment setup**
+   
    Add the following environment variable to `.env`:
    ```
    DATABASE_URL="file:./dev.db"
    OPENAI_API_KEY="your-key-here"  # Optional for AI features
    ```
 
-3. **Database setup**
+4. **Database setup**
    ```bash
    npx prisma migrate dev --name init
    npx prisma generate
    ```
 
-4. **Start development server**
+5. **Start development server**
    ```bash
    npm run dev
    ```
 
-5. **Access application**
+6. **Access application**
    - Open http://localhost:3000
    - Login: `admin` / `password123`
 
