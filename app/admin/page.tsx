@@ -62,6 +62,29 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDelete = async (formId: string, formTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${formTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/forms/${formId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete form');
+      }
+
+      // Refresh the forms list
+      fetchForms();
+      alert('Form deleted successfully');
+    } catch (error) {
+      console.error('Error deleting form:', error);
+      alert('Failed to delete form. Please try again.');
+    }
+  };
+
   if (loading || !isAuthenticated) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -117,7 +140,7 @@ export default function AdminDashboard() {
                       <p className="text-xs text-gray-500">
                         Created: {new Date(form.createdAt).toLocaleDateString()}
                       </p>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-2 mb-3">
                         <Link
                           href={`/form/${form.id}`}
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -126,6 +149,22 @@ export default function AdminDashboard() {
                           View Public Form →
                         </Link>
                       </div>
+                      
+                      <div className="flex gap-2 mb-3">
+                        <Link
+                          href={`/admin/edit/${form.id}`}
+                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(form.id, form.title)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
+
                       <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
                         <strong>Public URL:</strong><br />
                         <code className="break-all">{window.location.origin}/form/{form.id}</code>

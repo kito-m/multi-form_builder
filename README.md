@@ -19,16 +19,13 @@ A full-stack web application for creating custom forms with optional AI assistan
 
 1. **Clone and install**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/kito-m/multi-form_builder
    cd multi-form_builder
    npm install
    ```
 
 2. **Environment setup**
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env`:
+   Add the following environment variable to `.env`:
    ```
    DATABASE_URL="file:./dev.db"
    OPENAI_API_KEY="your-key-here"  # Optional for AI features
@@ -64,3 +61,10 @@ A full-stack web application for creating custom forms with optional AI assistan
 - Responsive public form display
 - Client-side validation and error handling
 - UUID-based form identification
+
+
+## To-Do
+- Decouple Submission Data: Prevent submission data from being deleted when a corresponding field on a form is deleted.
+- Admin Dashboard Links: Make the admin dashboard links easily copiable for sharing.
+- View Submissions: Implement a feature to view individual form submissions.
+- Loading Animations: Add loading animations to improve the user experience during page transitions.
