@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Field {
   id: string;
@@ -68,7 +69,7 @@ export default function CreateForm() {
     }
 
     const newSection: Section = {
-      id: `section_${Date.now()}`,
+      id: uuidv4(),
       title: '',
       order: formData.sections.length,
       fields: []
@@ -104,7 +105,7 @@ export default function CreateForm() {
     }
 
     const newField: Field = {
-      id: `field_${Date.now()}`,
+      id: uuidv4(),
       label: '',
       type: 'TEXT',
       required: false,
@@ -172,11 +173,11 @@ export default function CreateForm() {
       
       // Convert generated structure to our format
       const sections: Section[] = generated.sections.map((section: { title: string; fields: { label: string; type: string; required?: boolean }[] }, index: number) => ({
-        id: `section_${Date.now()}_${index}`,
+        id: uuidv4(),
         title: section.title,
         order: index,
         fields: section.fields.map((field: { label: string; type: string; required?: boolean }, fieldIndex: number) => ({
-          id: `field_${Date.now()}_${index}_${fieldIndex}`,
+          id: uuidv4(),
           label: field.label,
           type: field.type.toUpperCase() as 'TEXT' | 'NUMBER',
           required: field.required || false,

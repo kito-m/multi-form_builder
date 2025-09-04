@@ -12,7 +12,7 @@ datasource db {
 }
 
 model Form {
-  id          String    @id @default(cuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
   createdAt   DateTime  @default(now())
@@ -22,7 +22,7 @@ model Form {
 }
 
 model Section {
-  id     String  @id @default(cuid())
+  id     String  @id @default(uuid())
   title  String
   order  Int
   formId String
@@ -31,7 +31,7 @@ model Section {
 }
 
 model Field {
-  id        String      @id @default(cuid())
+  id        String      @id @default(uuid())
   label     String
   type      FieldType
   required  Boolean     @default(false)
@@ -42,7 +42,7 @@ model Field {
 }
 
 model Submission {
-  id        String     @id @default(cuid())
+  id        String     @id @default(uuid())
   formId    String
   form      Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
   createdAt DateTime   @default(now())
@@ -50,7 +50,7 @@ model Submission {
 }
 
 model Response {
-  id           String     @id @default(cuid())
+  id           String     @id @default(uuid())
   value        String
   fieldId      String
   field        Field      @relation(fields: [fieldId], references: [id], onDelete: Cascade)
