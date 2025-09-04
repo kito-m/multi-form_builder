@@ -69,3 +69,5 @@ A full-stack web application for creating custom forms with optional AI assistan
 - Admin Dashboard Links: Make the admin dashboard links easily copiable for sharing.
 - View Submissions: Implement a feature to view individual form submissions.
 - Loading Animations: Add loading animations to improve the user experience during page transitions.
+- Friendly Submission Confirmation: Replace the default JavaScript alert() on form completion with a user-friendly modal.
+- Component Optimization: Analyze and optimize which views are best suited as Server Components versus Client Components.
