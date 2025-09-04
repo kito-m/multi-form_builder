@@ -147,7 +147,7 @@ exports.Prisma.SubmissionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
-exports.Prisma.FieldResponseScalarFieldEnum = {
+exports.Prisma.ResponseScalarFieldEnum = {
   id: 'id',
   value: 'value',
   fieldId: 'fieldId',
@@ -173,7 +173,7 @@ exports.Prisma.ModelName = {
   Section: 'Section',
   Field: 'Field',
   Submission: 'Submission',
-  FieldResponse: 'FieldResponse'
+  Response: 'Response'
 };
 
 /**
